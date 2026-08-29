@@ -1,0 +1,835 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Studio — Chromatic Palette</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Crimson+Pro:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&display=swap">
+<style>
+  :root{
+    --linen:#EDE4CE; --plate:#F7F2E3; --card:#F3ECDA; --ink:#392D1E; --ink-soft:#71603F;
+    --ink-faint:#9A8A68; --prussian:#2E4B5E; --madder:#8A3324; --sap:#4C5B3C; --ochre:#B8862B;
+    --line:rgba(87,63,34,.28);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background-color:var(--linen);
+    background-image:
+      radial-gradient(ellipse 60rem 40rem at 12% -5%, rgba(148,110,52,.16), transparent 60%),
+      radial-gradient(ellipse 50rem 36rem at 95% 20%, rgba(120,84,36,.13), transparent 65%),
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='260' height='260'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='3' stitchTiles='stitch'/><feColorMatrix type='matrix' values='0 0 0 0 0.22 0 0 0 0 0.16 0 0 0 0 0.09 0 0 0 0.05 0'/></filter><rect width='260' height='260' filter='url(%23n)'/></svg>");
+    color:var(--ink);font-family:'Crimson Pro',Georgia,serif;font-size:1.02rem;line-height:1.55;
+    min-height:100vh;padding-bottom:7rem;
+  }
+  .sheet{max-width:78rem;margin:0 auto;padding:0 clamp(1rem,3vw,2rem)}
+
+  /* ---------- top bar ---------- */
+  header.bar{
+    position:sticky;top:0;z-index:30;
+    background:rgba(237,228,206,.93);backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--line);
+    display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;
+    padding:.9rem clamp(1rem,3vw,2rem);margin-bottom:1.6rem;
+  }
+  header.bar .brand{display:flex;align-items:baseline;gap:.7rem;flex-wrap:wrap}
+  header.bar h1{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:1.5rem;letter-spacing:.02em}
+  header.bar .sub{font-family:'Cormorant Garamond',serif;font-style:italic;color:var(--ink-soft);font-size:.95rem}
+  header.bar .right{display:flex;align-items:center;gap:.7rem;flex-wrap:wrap}
+
+  .btn{
+    font-family:'Cormorant Garamond',serif;font-weight:600;letter-spacing:.14em;
+    text-transform:uppercase;font-size:.76rem;cursor:pointer;white-space:nowrap;
+    color:var(--linen);background:var(--ink);border:1px solid var(--ink);
+    padding:.6rem 1.2rem;border-radius:2px;
+  }
+  .btn:hover:not(:disabled),.btn:focus-visible{background:var(--prussian);border-color:var(--prussian);outline:none}
+  .btn:disabled{opacity:.4;cursor:default}
+  .btn.ghost{background:transparent;color:var(--ink)}
+  .btn.ghost:hover:not(:disabled){background:var(--ink);color:var(--linen)}
+  .btn.small{padding:.4rem .8rem;font-size:.7rem}
+  a.view{
+    font-family:'Cormorant Garamond',serif;font-weight:600;text-transform:uppercase;
+    letter-spacing:.18em;font-size:.72rem;color:var(--prussian);text-decoration:none;
+    border-bottom:1px solid rgba(46,75,94,.4);
+  }
+  .msg{font-style:italic;color:var(--ink-soft);font-size:.9rem}
+  .msg.ok{color:var(--sap);font-style:normal}
+  .msg.err{color:var(--madder);font-style:normal}
+  .pending{
+    font-family:'Cormorant Garamond',serif;font-weight:600;font-size:.75rem;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--madder);
+  }
+
+  /* ---------- add zone ---------- */
+  .addzone{
+    border:1.5px dashed var(--line);border-radius:3px;background:rgba(247,242,227,.6);
+    padding:1.6rem 1.2rem;text-align:center;cursor:pointer;margin-bottom:1.8rem;
+  }
+  .addzone:hover,.addzone.over{border-color:var(--prussian);background:rgba(247,242,227,.9)}
+  .addzone input{display:none}
+  .addzone .big{font-family:'Cormorant Garamond',serif;font-size:1.25rem;font-weight:600}
+  .addzone .small{font-style:italic;color:var(--ink-soft);font-size:.95rem;margin-top:.25rem}
+
+  /* ---------- section headings ---------- */
+  .sect{display:flex;align-items:baseline;gap:.9rem;margin:2rem 0 1rem}
+  .sect h2{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:1.4rem;letter-spacing:.02em}
+  .sect .note{font-style:italic;color:var(--ink-soft);font-size:.92rem}
+  .sect::after{content:"";flex:1;border-bottom:1px solid var(--line)}
+
+  /* ---------- the grid of paintings ---------- */
+  #grid{
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(16.5rem,1fr));
+    gap:1.1rem;align-items:start;
+  }
+  .card{
+    background:var(--card);border:1px solid var(--line);border-radius:3px;
+    padding:.75rem;position:relative;
+    box-shadow:0 8px 18px -14px rgba(56,38,16,.6);
+    touch-action:manipulation;
+  }
+  .card.dragging{opacity:.25}
+  .card.ghost{
+    position:fixed;z-index:100;pointer-events:none;margin:0;
+    box-shadow:0 22px 40px -16px rgba(30,20,8,.65);
+    transform:rotate(1.4deg);opacity:.96;
+  }
+  .card .grip{
+    display:flex;align-items:center;justify-content:space-between;gap:.5rem;
+    margin:-.15rem -.15rem .5rem;cursor:grab;
+  }
+  .card .grip:active{cursor:grabbing}
+  .card .grip .dots{
+    color:var(--ink-faint);letter-spacing:.16em;font-size:.85rem;user-select:none;
+  }
+  .card .grip .pos{
+    font-family:'Cormorant Garamond',serif;font-size:.7rem;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--ink-faint);
+  }
+  .card .x{
+    background:none;border:1px solid var(--line);border-radius:2px;cursor:pointer;
+    color:var(--ink-faint);font-size:.9rem;line-height:1;padding:.2rem .45rem;
+  }
+  .card .x:hover{border-color:var(--madder);color:var(--madder)}
+
+  /* thumbnail keeps every painting's own shape — never cropped */
+  .thumb{
+    background:#EFE7D4;border:1px solid rgba(87,63,34,.18);border-radius:2px;
+    height:11rem;display:flex;align-items:center;justify-content:center;
+    overflow:hidden;cursor:grab;margin-bottom:.6rem;position:relative;
+  }
+  .thumb img{max-width:100%;max-height:100%;width:auto;height:auto;display:block}
+  .thumb .shape{
+    position:absolute;right:.3rem;bottom:.3rem;background:rgba(57,45,30,.72);color:var(--linen);
+    font-size:.62rem;letter-spacing:.08em;padding:.1rem .35rem;border-radius:2px;
+    font-family:'Cormorant Garamond',serif;
+  }
+  .thumb .replace{
+    position:absolute;left:.3rem;bottom:.3rem;background:rgba(57,45,30,.72);color:var(--linen);
+    font-size:.62rem;letter-spacing:.08em;padding:.15rem .4rem;border-radius:2px;cursor:pointer;
+    font-family:'Cormorant Garamond',serif;border:none;
+  }
+  .thumb .replace:hover{background:var(--prussian)}
+
+  .card label{
+    display:block;font-family:'Cormorant Garamond',serif;font-weight:600;text-transform:uppercase;
+    letter-spacing:.16em;font-size:.62rem;color:var(--ink-soft);margin:.45rem 0 .15rem;
+  }
+  .card input,.card select,.card textarea{
+    width:100%;font-family:'Crimson Pro',Georgia,serif;font-size:.94rem;color:var(--ink);
+    background:var(--plate);border:1px solid var(--line);border-radius:2px;padding:.35rem .45rem;
+  }
+  .card input.title{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:600}
+  .card textarea{min-height:3.4rem;resize:vertical;font-size:.9rem}
+  .card .three{display:grid;grid-template-columns:1fr 1fr;gap:.4rem}
+  .card input:focus-visible,.card select:focus-visible,.card textarea:focus-visible{
+    outline:2px solid var(--prussian);outline-offset:1px
+  }
+  .card .more{
+    background:none;border:none;cursor:pointer;color:var(--ink-soft);font-style:italic;
+    font-size:.85rem;padding:.35rem 0 0;
+  }
+  .card .more:hover{color:var(--ink)}
+  .card .extra.hidden{display:none}
+  .card.isnew{border-color:var(--sap);box-shadow:0 0 0 1px rgba(76,91,60,.35),0 8px 18px -14px rgba(56,38,16,.6)}
+  .card .newflag{
+    position:absolute;top:-.55rem;left:.6rem;background:var(--sap);color:var(--linen);
+    font-family:'Cormorant Garamond',serif;font-size:.62rem;letter-spacing:.14em;
+    text-transform:uppercase;padding:.12rem .45rem;border-radius:2px;
+  }
+  .slot{
+    border:1.5px dashed var(--prussian);border-radius:3px;background:rgba(46,75,94,.06);
+    min-height:6rem;
+  }
+
+  /* ---------- artist card ---------- */
+  .panel{
+    background:var(--card);border:1px solid var(--line);border-radius:3px;
+    padding:clamp(1rem,2.5vw,1.5rem);margin-top:1rem;
+  }
+  .panel .cols{display:grid;grid-template-columns:minmax(0,12rem) minmax(0,1fr);gap:1.4rem}
+  @media(max-width:42rem){.panel .cols{grid-template-columns:1fr}}
+  .panel label{
+    display:block;font-family:'Cormorant Garamond',serif;font-weight:600;text-transform:uppercase;
+    letter-spacing:.16em;font-size:.65rem;color:var(--ink-soft);margin:.6rem 0 .2rem;
+  }
+  .panel input,.panel textarea{
+    width:100%;font-family:'Crimson Pro',Georgia,serif;font-size:.98rem;color:var(--ink);
+    background:var(--plate);border:1px solid var(--line);border-radius:2px;padding:.45rem .55rem;
+  }
+  .panel textarea{min-height:7rem;resize:vertical}
+  .panel .row3{display:grid;grid-template-columns:repeat(auto-fit,minmax(9rem,1fr));gap:.7rem}
+  .portrait-drop{
+    border:1.5px dashed var(--line);border-radius:2px;background:var(--plate);
+    padding:.6rem;text-align:center;cursor:pointer;
+  }
+  .portrait-drop:hover{border-color:var(--prussian)}
+  .portrait-drop input{display:none}
+  .portrait-drop img{max-width:100%;max-height:13rem;display:block;margin:0 auto .4rem}
+  .portrait-drop p{font-style:italic;color:var(--ink-soft);font-size:.85rem}
+
+  /* ---------- publish bar ---------- */
+  .publishbar{
+    position:fixed;left:0;right:0;bottom:0;z-index:40;
+    background:rgba(57,45,30,.96);color:var(--linen);
+    display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;
+    padding:.8rem clamp(1rem,3vw,2rem);
+    transform:translateY(105%);transition:transform .25s ease;
+  }
+  .publishbar.up{transform:translateY(0)}
+  .publishbar .what{font-family:'Cormorant Garamond',serif;letter-spacing:.04em;font-size:.98rem}
+  .publishbar .btn{background:var(--linen);color:var(--ink);border-color:var(--linen)}
+  .publishbar .btn:hover:not(:disabled){background:#fff;border-color:#fff;color:var(--ink)}
+  .publishbar .btn.ghost{background:transparent;color:var(--linen);border-color:rgba(237,228,206,.5)}
+  .publishbar .btn.ghost:hover:not(:disabled){background:rgba(237,228,206,.15);color:var(--linen)}
+  .publishbar .msg{color:rgba(237,228,206,.85)}
+  .publishbar .msg.ok{color:#BFD3A8} .publishbar .msg.err{color:#E7A99B}
+
+  /* ---------- gate ---------- */
+  .gate{max-width:34rem;margin:2rem auto}
+  .gate .panel h2{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:1.35rem}
+  .gate .hint{font-style:italic;color:var(--ink-soft);font-size:.94rem;margin:.3rem 0 .9rem;text-wrap:pretty}
+  .steps{margin:.6rem 0 1rem;padding-left:1.1rem;font-size:.95rem}
+  .steps li{margin-bottom:.4rem}
+  .steps code{background:var(--plate);border:1px solid var(--line);padding:.05rem .3rem;border-radius:2px;font-size:.9em}
+  .caution{
+    font-size:.86rem;color:var(--ink-soft);font-style:italic;margin-top:.9rem;
+    border-top:1px solid var(--line);padding-top:.7rem;text-wrap:pretty;
+  }
+  a{color:var(--prussian)}
+  .hidden{display:none}
+  .spin{
+    display:inline-block;width:.85em;height:.85em;border:2px solid rgba(237,228,206,.3);
+    border-top-color:currentColor;border-radius:50%;vertical-align:-.08em;margin-right:.4rem;
+    animation:spin .8s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @media (prefers-reduced-motion: reduce){ .spin{animation:none} .publishbar{transition:none} }
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <div class="brand">
+    <h1>The Studio</h1>
+    <span class="sub">Chromatic Palette</span>
+  </div>
+  <div class="right">
+    <span class="msg" id="top-msg"></span>
+    <a class="view" href="index.html" target="_blank" rel="noopener">View the wall →</a>
+    <button class="btn ghost small hidden" id="signout" type="button">Sign out</button>
+  </div>
+</header>
+
+<div class="sheet">
+
+  <!-- ===== sign-in ===== -->
+  <section id="gate" class="gate">
+    <div class="panel">
+      <h2>Sign in to the Studio</h2>
+      <p class="hint">Enter the Studio password to add and arrange paintings.</p>
+      <label for="pw">Password</label>
+      <input type="password" id="pw" autocomplete="current-password" placeholder="••••••••">
+      <div style="display:flex;gap:.7rem;align-items:center;margin-top:.9rem;flex-wrap:wrap">
+        <button class="btn" id="signin" type="button">Sign in</button>
+        <span class="msg" id="gate-msg"></span>
+      </div>
+      <p class="caution" id="setup-note" hidden></p>
+    </div>
+  </section>
+
+  <!-- ===== studio ===== -->
+  <main id="app" class="hidden">
+
+    <div class="addzone" id="addzone">
+      <input type="file" id="addfile" accept="image/*" multiple>
+      <p class="big">Add paintings</p>
+      <p class="small">Drop photographs here, or tap to choose — several at once is fine.<br>Any shape works; each keeps its own proportions.</p>
+    </div>
+
+    <div class="sect">
+      <h2>The wall</h2>
+      <span class="note" id="grid-note">Drag a painting to move it. Everything on a card is editable.</span>
+    </div>
+
+    <div id="grid"></div>
+    <p class="msg hidden" id="grid-empty">Nothing on the wall yet — add the first painting above.</p>
+
+    <div class="sect"><h2>The artist</h2></div>
+    <div class="panel">
+      <div class="cols">
+        <div>
+          <label>Portrait</label>
+          <div class="portrait-drop" id="portrait-drop">
+            <input type="file" id="portrait-file" accept="image/*">
+            <img id="portrait-img" alt="" class="hidden">
+            <p id="portrait-hint">Tap to choose, or drop a photo here.</p>
+          </div>
+        </div>
+        <div>
+          <label for="a-name">Name</label>
+          <input type="text" id="a-name">
+          <label for="a-tagline">Line under the title</label>
+          <input type="text" id="a-tagline">
+          <label for="a-bio">About the artist</label>
+          <textarea id="a-bio"></textarea>
+          <div class="row3">
+            <div><label for="a-email">Email</label><input type="email" id="a-email"></div>
+            <div><label for="a-phone">Phone / WhatsApp</label><input type="text" id="a-phone"></div>
+            <div><label for="a-instagram">Instagram</label><input type="text" id="a-instagram"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<div class="publishbar" id="publishbar">
+  <span class="what" id="pending-what"></span>
+  <div class="right" style="display:flex;gap:.7rem;align-items:center;flex-wrap:wrap">
+    <span class="msg" id="pub-msg"></span>
+    <button class="btn ghost" id="discard" type="button">Discard</button>
+    <button class="btn" id="publish" type="button">Publish changes</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var MAXDIM = 1500, QUALITY = 0.82;
+
+  var $ = function(id){ return document.getElementById(id); };
+  function esc(s){
+    return String(s == null ? "" : s)
+      .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  }
+  function show(el){ el.classList.remove("hidden"); }
+  function hide(el){ el.classList.add("hidden"); }
+  function setMsg(el, text, kind, spinning){
+    el.className = "msg" + (kind ? " " + kind : "");
+    el.innerHTML = (spinning ? '<span class="spin"></span>' : "") + esc(text);
+  }
+
+  /* works[]: {uid,img,w,h,title,medium,size,year,note,status, blob?, url?, isNew?} */
+  var works = [], artist = {}, portraitBlob = null;
+  var dirty = false, busy = false, uidN = 0, original = "";
+
+  function uid(){ return "u" + (++uidN); }
+
+  /* ---------------- the site's own API ---------------- */
+  function api(path, options){
+    options = options || {};
+    options.credentials = "same-origin";
+    if (options.body && typeof options.body !== "string"){
+      options.body = JSON.stringify(options.body);
+      options.headers = Object.assign({ "Content-Type": "application/json" }, options.headers || {});
+    }
+    return fetch("/api/" + path, options).then(function(r){
+      return r.json().catch(function(){ return {}; }).then(function(j){
+        if (r.status === 401){ var e = new Error(j.message || "Please sign in again."); e.code = "auth"; throw e; }
+        if (!r.ok){ var e2 = new Error(j.message || "That did not work."); e2.code = j.error || "http"; throw e2; }
+        return j;
+      });
+    });
+  }
+
+  function blobToDataUrl(blob){
+    return new Promise(function(res, rej){
+      var fr = new FileReader();
+      fr.onload = function(){ res(String(fr.result)); };
+      fr.onerror = function(){ rej(new Error("could not read the photograph")); };
+      fr.readAsDataURL(blob);
+    });
+  }
+
+  /* ---------------- image processing ---------------- */
+  function processImage(file){
+    return new Promise(function(resolve, reject){
+      var img = new Image(), url = URL.createObjectURL(file);
+      img.onload = function(){
+        try{
+          var nw = img.naturalWidth, nh = img.naturalHeight;
+          var scale = Math.min(1, MAXDIM / Math.max(nw, nh));
+          var c = document.createElement("canvas");
+          c.width = Math.max(1, Math.round(nw * scale));
+          c.height = Math.max(1, Math.round(nh * scale));
+          c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+          URL.revokeObjectURL(url);
+          var w = c.width, h = c.height;
+          c.toBlob(function(blob){
+            if (!blob) return reject(new Error("could not process the photograph"));
+            resolve({ blob: blob, w: w, h: h, url: URL.createObjectURL(blob) });
+          }, "image/jpeg", QUALITY);
+        } catch(err){ URL.revokeObjectURL(url); reject(err); }
+      };
+      img.onerror = function(){ URL.revokeObjectURL(url); reject(new Error("that file is not a photograph we can read")); };
+      img.src = url;
+    });
+  }
+
+  function slug(s){
+    return String(s||"").toLowerCase().replace(/\.[a-z0-9]+$/,"")
+      .replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,48);
+  }
+  function shapeOf(w){
+    if (!w.w || !w.h) return "";
+    var r = w.w / w.h;
+    return r > 1.15 ? "landscape" : (r < 0.87 ? "portrait" : "square");
+  }
+  /* ---------------- dirty tracking ---------------- */
+  function snapshot(){
+    return JSON.stringify({
+      a: artist,
+      w: works.map(function(w){
+        return [w.img||"", w.title||"", w.medium||"", w.size||"", w.year||"", w.note||"", w.status||"", w.isNew?1:0];
+      })
+    });
+  }
+  function markDirty(){
+    dirty = snapshot() !== original || !!portraitBlob || works.some(function(w){ return !!w.blob; });
+    renderPending();
+  }
+  function renderPending(){
+    var bar = $("publishbar");
+    if (!dirty){ bar.classList.remove("up"); return; }
+    var added = works.filter(function(w){ return w.isNew; }).length;
+    var photos = works.filter(function(w){ return w.blob && !w.isNew; }).length;
+    var bits = [];
+    if (added) bits.push(added + (added === 1 ? " painting added" : " paintings added"));
+    if (photos) bits.push(photos + (photos === 1 ? " photo replaced" : " photos replaced"));
+    if (portraitBlob) bits.push("portrait changed");
+    if (!bits.length) bits.push("details changed");
+    $("pending-what").textContent = "Unpublished: " + bits.join(", ") + ".";
+    bar.classList.add("up");
+  }
+
+  window.addEventListener("beforeunload", function(e){
+    if (dirty && !busy){ e.preventDefault(); e.returnValue = ""; }
+  });
+
+  /* ---------------- rendering the grid ---------------- */
+  function cardHTML(w, i){
+    var src = w.url || w.img || "";
+    var shape = shapeOf(w);
+    return '<div class="card' + (w.isNew ? " isnew" : "") + '" data-uid="' + w.uid + '">' +
+      (w.isNew ? '<span class="newflag">new</span>' : '') +
+      '<div class="grip" data-drag><span class="dots">⠿</span>' +
+        '<span class="pos">' + (i + 1) + '</span>' +
+        '<button class="x" type="button" data-remove title="Take down">×</button></div>' +
+      '<div class="thumb" data-drag>' +
+        (src ? '<img src="' + esc(src) + '" alt="">' : '') +
+        (shape ? '<span class="shape">' + shape + '</span>' : '') +
+        '<button class="replace" type="button" data-replace>Replace photo</button>' +
+      '</div>' +
+      '<label>Title</label>' +
+      '<input class="title" type="text" data-f="title" value="' + esc(w.title) + '" placeholder="Untitled">' +
+      '<label>Medium</label>' +
+      '<input type="text" data-f="medium" value="' + esc(w.medium) + '" placeholder="Oil on canvas">' +
+      '<div class="three">' +
+        '<div><label>Size</label><input type="text" data-f="size" value="' + esc(w.size) + '" placeholder="24&quot; × 36&quot;"></div>' +
+        '<div><label>Year</label><input type="text" data-f="year" value="' + esc(w.year) + '" placeholder="2026"></div>' +
+      '</div>' +
+      '<label>Status</label>' +
+      '<select data-f="status">' +
+        '<option value="display"' + (w.status === "display" || !w.status ? " selected" : "") + '>On display only</option>' +
+        '<option value="available"' + (w.status === "available" ? " selected" : "") + '>Available for sale</option>' +
+        '<option value="sold"' + (w.status === "sold" ? " selected" : "") + '>Sold</option>' +
+      '</select>' +
+      '<button class="more" type="button" data-more>' + (w.note ? "Hide the note" : "Add a note") + '</button>' +
+      '<div class="extra' + (w.note ? "" : " hidden") + '">' +
+        '<label>A few words about it</label>' +
+        '<textarea data-f="note" placeholder="What inspired it, where it was painted…">' + esc(w.note) + '</textarea>' +
+      '</div>' +
+    '</div>';
+  }
+
+  function renderGrid(){
+    var g = $("grid");
+    g.innerHTML = works.map(cardHTML).join("");
+    if (works.length) hide($("grid-empty")); else show($("grid-empty"));
+    $("grid-note").textContent = works.length
+      ? "Drag a painting to move it. Everything on a card is editable."
+      : "";
+  }
+
+  function renumber(){
+    [].forEach.call($("grid").querySelectorAll(".card .pos"), function(el, i){ el.textContent = i + 1; });
+  }
+
+  function workByUid(u){
+    for (var i = 0; i < works.length; i++) if (works[i].uid === u) return works[i];
+    return null;
+  }
+
+  /* ---------------- grid interactions ---------------- */
+  $("grid").addEventListener("input", function(e){
+    var f = e.target.getAttribute && e.target.getAttribute("data-f");
+    if (!f) return;
+    var card = e.target.closest(".card");
+    var w = workByUid(card.dataset.uid);
+    if (!w) return;
+    w[f] = e.target.value;
+    markDirty();
+  });
+  $("grid").addEventListener("change", function(e){
+    if (e.target.tagName === "SELECT" && e.target.getAttribute("data-f")){
+      var w = workByUid(e.target.closest(".card").dataset.uid);
+      if (w){ w.status = e.target.value; markDirty(); }
+    }
+  });
+
+  $("grid").addEventListener("click", function(e){
+    var card = e.target.closest(".card");
+    if (!card) return;
+    var w = workByUid(card.dataset.uid);
+
+    if (e.target.closest("[data-more]")){
+      var extra = card.querySelector(".extra");
+      extra.classList.toggle("hidden");
+      e.target.textContent = extra.classList.contains("hidden") ? "Add a note" : "Hide the note";
+      return;
+    }
+    if (e.target.closest("[data-remove]")){
+      if (!window.confirm('Take "' + (w.title || "Untitled") + '" off the wall?')) return;
+      works = works.filter(function(x){ return x.uid !== w.uid; });
+      renderGrid(); markDirty();
+      return;
+    }
+    if (e.target.closest("[data-replace]")){
+      var inp = document.createElement("input");
+      inp.type = "file"; inp.accept = "image/*";
+      inp.addEventListener("change", function(){
+        if (!inp.files[0]) return;
+        var thumb = card.querySelector(".thumb");
+        processImage(inp.files[0]).then(function(r){
+          w.blob = r.blob; w.url = r.url; w.w = r.w; w.h = r.h;
+          var img = thumb.querySelector("img");
+          if (!img){ img = document.createElement("img"); thumb.insertBefore(img, thumb.firstChild); }
+          img.src = r.url;
+          var sh = thumb.querySelector(".shape");
+          if (sh) sh.textContent = shapeOf(w);
+          markDirty();
+        }).catch(function(err){ setMsg($("top-msg"), err.message, "err"); });
+      });
+      inp.click();
+    }
+  });
+
+  /* ---------------- drag to reorder (mouse + touch) ---------------- */
+  (function dragReorder(){
+    var grid = $("grid");
+    var dragging = null, ghost = null, slot = null, startX = 0, startY = 0, offX = 0, offY = 0, active = false;
+
+    grid.addEventListener("pointerdown", function(e){
+      if (e.button != null && e.button !== 0) return;
+      var handle = e.target.closest("[data-drag]");
+      if (!handle) return;
+      if (e.target.closest("button,input,select,textarea")) return;
+      dragging = handle.closest(".card");
+      if (!dragging) return;
+      startX = e.clientX; startY = e.clientY;
+      var r = dragging.getBoundingClientRect();
+      offX = e.clientX - r.left; offY = e.clientY - r.top;
+      grid.setPointerCapture(e.pointerId);
+    });
+
+    grid.addEventListener("pointermove", function(e){
+      if (!dragging) return;
+      if (!active){
+        if (Math.abs(e.clientX - startX) < 6 && Math.abs(e.clientY - startY) < 6) return;
+        active = true;
+        var r = dragging.getBoundingClientRect();
+        ghost = dragging.cloneNode(true);
+        ghost.classList.add("ghost");
+        ghost.style.width = r.width + "px";
+        document.body.appendChild(ghost);
+        slot = document.createElement("div");
+        slot.className = "slot";
+        slot.style.height = r.height + "px";
+        dragging.parentNode.insertBefore(slot, dragging);
+        dragging.classList.add("dragging");
+        dragging.style.display = "none";
+        document.body.style.userSelect = "none";
+      }
+      e.preventDefault();
+      ghost.style.left = (e.clientX - offX) + "px";
+      ghost.style.top  = (e.clientY - offY) + "px";
+
+      var cards = [].filter.call(grid.children, function(c){ return c !== slot && c !== dragging; });
+      var placed = false;
+      for (var i = 0; i < cards.length; i++){
+        var b = cards[i].getBoundingClientRect();
+        if (e.clientY < b.top + b.height / 2 || (e.clientY < b.bottom && e.clientX < b.left + b.width / 2)){
+          grid.insertBefore(slot, cards[i]); placed = true; break;
+        }
+      }
+      if (!placed) grid.appendChild(slot);
+    });
+
+    function finish(e){
+      if (!dragging) return;
+      if (active){
+        grid.insertBefore(dragging, slot);
+        slot.remove();
+        ghost.remove();
+        dragging.style.display = "";
+        dragging.classList.remove("dragging");
+        document.body.style.userSelect = "";
+        var order = [].map.call(grid.querySelectorAll(".card"), function(c){ return c.dataset.uid; });
+        works.sort(function(a, b){ return order.indexOf(a.uid) - order.indexOf(b.uid); });
+        renumber();
+        markDirty();
+      }
+      dragging = null; ghost = null; slot = null; active = false;
+      try { grid.releasePointerCapture(e.pointerId); } catch(err){}
+    }
+    grid.addEventListener("pointerup", finish);
+    grid.addEventListener("pointercancel", finish);
+  })();
+
+  /* ---------------- adding paintings ---------------- */
+  function addFiles(fileList){
+    var files = [].slice.call(fileList).filter(function(f){ return /^image\//.test(f.type); });
+    if (!files.length){ setMsg($("top-msg"), "Those files are not photographs.", "err"); return; }
+    setMsg($("top-msg"), "Preparing " + files.length + (files.length === 1 ? " photo…" : " photos…"), "", true);
+    var added = 0;
+    files.reduce(function(chain, f){
+      return chain.then(function(){
+        return processImage(f).then(function(r){
+          works.unshift({
+            uid: uid(), img: "", blob: r.blob, url: r.url, w: r.w, h: r.h,
+            title: "", medium: "", size: "", year: "", note: "", status: "display",
+            isNew: true, sourceName: f.name
+          });
+          added++;
+        }).catch(function(){});
+      });
+    }, Promise.resolve()).then(function(){
+      renderGrid(); markDirty();
+      setMsg($("top-msg"), added ? (added + (added === 1 ? " painting added — fill in its details, then publish." : " paintings added — fill in their details, then publish.")) : "Those photos could not be read.", added ? "ok" : "err");
+      if (added){
+        var first = $("grid").querySelector(".card .title");
+        if (first) first.focus();
+      }
+    });
+  }
+
+  (function wireAdd(){
+    var zone = $("addzone"), input = $("addfile");
+    zone.addEventListener("click", function(e){ if (e.target !== input) input.click(); });
+    input.addEventListener("change", function(){ if (input.files.length) addFiles(input.files); input.value = ""; });
+    ["dragover","dragenter"].forEach(function(ev){
+      zone.addEventListener(ev, function(e){ e.preventDefault(); zone.classList.add("over"); });
+    });
+    ["dragleave","drop"].forEach(function(ev){
+      zone.addEventListener(ev, function(e){ e.preventDefault(); zone.classList.remove("over"); });
+    });
+    zone.addEventListener("drop", function(e){
+      if (e.dataTransfer.files && e.dataTransfer.files.length) addFiles(e.dataTransfer.files);
+    });
+    /* dropping anywhere on the page also adds */
+    window.addEventListener("dragover", function(e){ e.preventDefault(); });
+    window.addEventListener("drop", function(e){
+      if (e.target.closest && e.target.closest(".portrait-drop")) return;
+      e.preventDefault();
+      if ($("app").classList.contains("hidden")) return;
+      if (e.dataTransfer.files && e.dataTransfer.files.length) addFiles(e.dataTransfer.files);
+    });
+  })();
+
+  /* ---------------- artist panel ---------------- */
+  ["a-name","a-tagline","a-bio","a-email","a-phone","a-instagram"].forEach(function(id){
+    $(id).addEventListener("input", function(){
+      artist.name = $("a-name").value; artist.tagline = $("a-tagline").value;
+      artist.bio = $("a-bio").value; artist.email = $("a-email").value;
+      artist.phone = $("a-phone").value; artist.instagram = $("a-instagram").value;
+      markDirty();
+    });
+  });
+  (function wirePortrait(){
+    var zone = $("portrait-drop"), input = $("portrait-file");
+    zone.addEventListener("click", function(e){ if (e.target !== input) input.click(); });
+    input.addEventListener("change", function(){ if (input.files[0]) handle(input.files[0]); });
+    ["dragover","dragenter"].forEach(function(ev){ zone.addEventListener(ev, function(e){ e.preventDefault(); }); });
+    zone.addEventListener("drop", function(e){
+      e.preventDefault(); e.stopPropagation();
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) handle(e.dataTransfer.files[0]);
+    });
+    function handle(f){
+      processImage(f).then(function(r){
+        portraitBlob = r.blob;
+        $("portrait-img").src = r.url; show($("portrait-img"));
+        $("portrait-hint").textContent = "New portrait ready — publish to save it.";
+        markDirty();
+      }).catch(function(err){ $("portrait-hint").textContent = err.message; });
+    }
+  })();
+
+  /* ---------------- publish ---------------- */
+  function publish(){
+    if (busy || !dirty) return;
+    busy = true;
+    $("publish").disabled = true; $("discard").disabled = true;
+    setMsg($("pub-msg"), "Publishing…", "", true);
+
+    var pending = works.filter(function(w){ return !!w.blob; });
+    var chain = Promise.resolve();
+
+    pending.forEach(function(w){
+      chain = chain.then(function(){
+        return blobToDataUrl(w.blob).then(function(dataUrl){
+          return api("upload", { method: "POST", body: {
+            name: slug(w.title) || slug(w.sourceName) || "painting",
+            dataUrl: dataUrl
+          }});
+        }).then(function(r){ w.img = r.url; });
+      });
+    });
+
+    if (portraitBlob){
+      chain = chain.then(function(){
+        return blobToDataUrl(portraitBlob).then(function(dataUrl){
+          return api("upload", { method: "POST", body: { name: "portrait", dataUrl: dataUrl } });
+        }).then(function(r){ artist.portrait = r.url; });
+      });
+    }
+
+    chain.then(function(){
+      return api("save", { method: "POST", body: {
+        artist: artist,
+        works: works.map(function(w){
+          var o = { img: w.img, title: w.title || "", medium: w.medium || "", size: w.size || "",
+                    year: w.year || "", note: w.note || "", status: w.status || "display" };
+          if (w.w && w.h){ o.w = w.w; o.h = w.h; }
+          return o;
+        })
+      }});
+    }).then(function(){
+      works.forEach(function(w){ delete w.blob; w.isNew = false; });
+      portraitBlob = null;
+      original = snapshot(); dirty = false;
+      busy = false;
+      $("publish").disabled = false; $("discard").disabled = false;
+      renderGrid();
+      renderPending();
+      setMsg($("pub-msg"), "", "");
+      setMsg($("top-msg"), "Published — the wall is live now.", "ok");
+      $("publishbar").classList.remove("up");
+    }).catch(function(err){
+      busy = false;
+      $("publish").disabled = false; $("discard").disabled = false;
+      if (err && err.code === "auth"){ setMsg($("pub-msg"), "Signed out — sign in and publish again.", "err"); signOut(""); }
+      else if (err && err.code === "setup"){ setMsg($("pub-msg"), err.message, "err"); }
+      else setMsg($("pub-msg"), (err && err.message) || "That did not save — check the connection and try again.", "err");
+    });
+  }
+  $("publish").addEventListener("click", publish);
+
+  $("discard").addEventListener("click", function(){
+    if (busy) return;
+    if (!window.confirm("Throw away the unpublished changes?")) return;
+    load().then(function(){ setMsg($("top-msg"), "Changes discarded.", ""); });
+  });
+
+  /* ---------------- load ---------------- */
+  function load(){
+    return fetch("/api/gallery", { cache: "no-store", credentials: "same-origin" })
+      .then(function(r){ if (!r.ok) throw new Error("could not load the wall"); return r.json(); })
+      .then(function(data){
+        artist = data.artist || {};
+        works = (data.works || []).map(function(w){
+          return { uid: uid(), img: w.img || "", w: w.w, h: w.h, title: w.title || "", medium: w.medium || "",
+                   size: w.size || "", year: w.year || "", note: w.note || "", status: w.status || "display" };
+        });
+        portraitBlob = null;
+        $("a-name").value = artist.name || "";
+        $("a-tagline").value = artist.tagline || "";
+        $("a-bio").value = artist.bio || "";
+        $("a-email").value = artist.email || "";
+        $("a-phone").value = artist.phone || "";
+        $("a-instagram").value = artist.instagram || "";
+        if (artist.portrait){ $("portrait-img").src = artist.portrait; show($("portrait-img")); $("portrait-hint").textContent = "Tap to choose a different portrait."; }
+        else { hide($("portrait-img")); $("portrait-hint").textContent = "Tap to choose, or drop a photo here."; }
+        renderGrid();
+        original = snapshot(); dirty = false;
+        renderPending();
+      });
+  }
+
+  /* ---------------- sign in / out ---------------- */
+  function start(){
+    hide($("gate")); show($("app")); show($("signout"));
+    setMsg($("top-msg"), "Loading the wall…", "", true);
+    load().then(function(){ setMsg($("top-msg"), "", ""); })
+      .catch(function(){ setMsg($("top-msg"), "The wall could not be loaded — reload to try again.", "err"); });
+  }
+
+  function signOut(message){
+    works = []; artist = {}; dirty = false; renderPending();
+    show($("gate")); hide($("app")); hide($("signout"));
+    $("pw").value = "";
+    setMsg($("top-msg"), "", "");
+    setMsg($("gate-msg"), message || "", message ? "err" : "");
+  }
+
+  $("signin").addEventListener("click", function(){
+    var pw = $("pw").value;
+    if (!pw){ setMsg($("gate-msg"), "Enter the password.", "err"); return; }
+    $("signin").disabled = true;
+    setMsg($("gate-msg"), "Checking…", "", true);
+    api("login", { method: "POST", body: { password: pw } }).then(function(){
+      $("signin").disabled = false;
+      $("pw").value = "";
+      setMsg($("gate-msg"), "", "");
+      start();
+    }).catch(function(err){
+      $("signin").disabled = false;
+      setMsg($("gate-msg"), (err && err.message) || "That did not work.", "err");
+    });
+  });
+
+  $("pw").addEventListener("keydown", function(e){ if (e.key === "Enter") $("signin").click(); });
+
+  $("signout").addEventListener("click", function(){
+    if (dirty && !window.confirm("There are unpublished changes. Sign out anyway?")) return;
+    api("login", { method: "DELETE" }).catch(function(){}).then(function(){ signOut("Signed out."); });
+  });
+
+  /* already signed in on this device? */
+  fetch("/api/login", { credentials: "same-origin", cache: "no-store" })
+    .then(function(r){ return r.json(); })
+    .then(function(j){
+      if (!j.configured){
+        $("setup-note").hidden = false;
+        $("setup-note").textContent = "This site still needs its Studio password and storage set up in Vercel before uploads will work.";
+      }
+      if (j.signedIn) start();
+    })
+    .catch(function(){});
+})();
+</script>
+</body>
+</html>
