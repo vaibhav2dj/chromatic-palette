@@ -122,6 +122,7 @@
   }
   .mat{background:var(--plate);padding:9px;box-shadow:inset 0 0 6px rgba(70,48,26,.35)}
   .frame img{display:block;width:100%;height:auto;filter:saturate(.98)}
+  .frame img[width]{max-width:100%}
   figcaption{
     margin:.65rem auto 0;text-align:center;max-width:92%;
   }
@@ -316,7 +317,6 @@
 <style>#studio-door{display:none}</style>
 </head>
 <body>
-<script type="application/json" id="cp-state">{"artist": {"name": "Anjali Jain", "tagline": "Crafting vivid stories on canvas, leather & more", "bio": "Anjali Jain crafts vivid stories on canvas, leather and more. Her wall moves easily between worlds — candlelit still lifes, blossom-crowned portraits, studies after the old masters, and landscapes that feel like a place you once called home. Every piece begins the same way: with a colour she cannot stop thinking about.\n\nInspired by everyday life and learning daily, she exhibits her work and welcomes commissions and collaborations — from paintings for the home to hand-painted leather bags and jackets. If something on this wall speaks to you, write to her; kind words always reach the studio.", "portrait": "art/portrait.jpg", "email": "anjlijain@gmail.com", "phone": "", "instagram": "chromatic.palette"}, "works": [{"id": "w-sakura", "img": "art/sakura.jpg", "title": "Sakura", "medium": "", "size": "", "year": "2024", "note": "A face washed in blue, crowned in cherry blossom — one of the studio’s favourite walls of colour.", "status": "display"}, {"id": "w-honeycomb", "img": "art/honeycomb-reverie.jpg", "title": "Honeycomb Reverie", "medium": "", "size": "", "year": "2024", "note": "Geometry swarming into thought — a butterfly settles where the eyes should be.", "status": "display"}, {"id": "w-flamenco", "img": "art/flamenco-dancer.jpg", "title": "Flamenco Dancer", "medium": "", "size": "", "year": "2024", "note": "A pastiche — a flamenco dancer mid-turn, the whole canvas swirling with her.", "status": "display"}, {"id": "w-autumn", "img": "art/veiled-in-autumn.jpg", "title": "Veiled in Autumn", "medium": "", "size": "", "year": "2024", "note": "A portrait dressed entirely in fallen leaves.", "status": "display"}, {"id": "w-bottles", "img": "art/vintage-spirits.jpg", "title": "Vintage Spirits", "medium": "", "size": "", "year": "2024", "note": "A pastiche — a candlelit attic of bottles and jars, each one catching its own little flame.", "status": "display"}, {"id": "w-grapes", "img": "art/mary-gabrielle-de-gramont.jpg", "title": "Mary Gabrielle de Gramont", "medium": "", "size": "", "year": "2024", "note": "A pastiche in homage to Élisabeth Vigée-Le Brun, celebrating the elegance of her timeless portraits and keeping the spirit of nobility alive through the brush.", "status": "display"}, {"id": "w-shepherd", "img": "art/the-shepherd.jpg", "title": "The Shepherd", "medium": "", "size": "", "year": "2024", "note": "A pastiche painted in deep chiaroscuro.", "status": "display"}, {"id": "w-peaks", "img": "art/home-beneath-the-peaks.jpg", "title": "Home Beneath the Peaks", "medium": "", "size": "", "year": "2024", "note": "A stone path, grazing sheep and a timbered house under snow-capped mountains.", "status": "display"}, {"id": "s-blossom1", "img": "art/blossom-face-i.jpg", "title": "Blossom Face I", "medium": "Digital study", "size": "", "year": "2024", "note": "Concept study that later bloomed into the Sakura canvas.", "status": "display"}, {"id": "s-blossom2", "img": "art/blossom-face-ii.jpg", "title": "Blossom Face II", "medium": "Digital study", "size": "", "year": "2024", "note": "", "status": "display"}, {"id": "s-moonlit", "img": "art/moonlit-chorus.jpg", "title": "Moonlit Chorus", "medium": "Digital study", "size": "", "year": "2025", "note": "", "status": "display"}, {"id": "s-goldmoon", "img": "art/gold-moon-songbirds.jpg", "title": "Gold Moon Songbirds", "medium": "Digital study", "size": "", "year": "2025", "note": "", "status": "display"}, {"id": "s-branch", "img": "art/blossom-branch.jpg", "title": "Blossom Branch", "medium": "Digital study", "size": "", "year": "2025", "note": "", "status": "display"}, {"id": "s-rain", "img": "art/spring-rain.jpg", "title": "Spring Rain", "medium": "Digital study", "size": "", "year": "2025", "note": "", "status": "display"}, {"id": "s-firefly", "img": "art/the-firefly-keeper.jpg", "title": "The Firefly Keeper", "medium": "Digital study", "size": "", "year": "2024", "note": "", "status": "display"}, {"id": "s-current", "img": "art/undercurrent.jpg", "title": "Undercurrent", "medium": "Digital study", "size": "", "year": "2025", "note": "", "status": "display"}, {"id": "s-tide", "img": "art/the-turning-tide.jpg", "title": "The Turning Tide", "medium": "Digital study", "size": "", "year": "2025", "note": "", "status": "display"}]}</script>
 <div class="sheet">
   <header>
     <p class="eyebrow">A painter's portfolio</p>
@@ -388,7 +388,7 @@
 
   <footer>
     <p class="colophon" id="colophon">Chromatic Palette · painted by hand, hung with love</p>
-    <button class="studio-door" id="studio-door" type="button">✦ Artist's Studio</button>
+    <a class="studio-door" href="studio.html">✦ Studio</a>
   </footer>
 </div>
 
@@ -411,97 +411,11 @@
   </div>
 </dialog>
 
-<!-- studio -->
-<dialog id="studio" aria-label="Artist's studio">
-  <div class="modal-card">
-    <div class="modal-head">
-      <div>
-        <p class="eyebrow">Behind the curtain</p>
-        <h3>The Studio</h3>
-      </div>
-      <button class="close-x" data-close="studio" type="button">Close</button>
-    </div>
-
-    <div class="studio-tabs" role="tablist">
-      <button role="tab" aria-selected="true" data-pane="pane-add" type="button">Hang a new work</button>
-      <button role="tab" aria-selected="false" data-pane="pane-manage" type="button">The collection</button>
-      <button role="tab" aria-selected="false" data-pane="pane-artist" type="button">About &amp; contact</button>
-    </div>
-
-    <div class="pane on" id="pane-add">
-      <div class="field">
-        <label for="w-file">Photograph of the work</label>
-        <div class="drop" id="drop">
-          <input type="file" id="w-file" accept="image/*">
-          <img class="preview" id="w-preview" alt="" hidden>
-          <p class="hint" id="drop-hint">Tap to choose a photo, or drop one here.<br>A phone photo is perfect — it will be sized for the wall automatically.</p>
-        </div>
-      </div>
-      <div class="field"><label for="w-title">Title</label><input type="text" id="w-title" placeholder="e.g. Monsoon over the Ghats"></div>
-      <div class="field-row">
-        <div class="field"><label for="w-medium">Medium</label><input type="text" id="w-medium" placeholder="Oil on canvas"></div>
-        <div class="field"><label for="w-size">Size</label><input type="text" id="w-size" placeholder='24" × 36"'></div>
-        <div class="field"><label for="w-year">Year</label><input type="text" id="w-year" placeholder="2026"></div>
-      </div>
-      <div class="field"><label for="w-status">Status</label>
-        <select id="w-status">
-          <option value="display">On display only</option>
-          <option value="available">Available for sale</option>
-          <option value="sold">Sold</option>
-        </select>
-      </div>
-      <div class="field"><label for="w-note">A few words about it <span style="text-transform:none;letter-spacing:0">(optional)</span></label>
-        <textarea id="w-note" placeholder="What inspired it, where it was painted..."></textarea>
-      </div>
-      <div class="studio-actions">
-        <button class="btn" id="w-save" type="button">Hang it on the wall</button>
-        <button class="btn ghost" id="w-cancel" type="button" hidden>Cancel edit</button>
-        <span id="w-status-msg" style="font-style:italic;color:var(--ink-soft)"></span>
-      </div>
-      <p class="studio-note">Saving publishes a fresh version of this website for everyone. Only the artist and family with edit access can save — visitors cannot.</p>
-    </div>
-
-    <div class="pane" id="pane-manage">
-      <div class="manage-list" id="manage-list"></div>
-      <p class="studio-note" id="manage-empty" hidden>Nothing hangs on the wall yet. Add the first work from “Hang a new work”.</p>
-    </div>
-
-    <div class="pane" id="pane-artist">
-      <div class="field"><label for="a-name">Artist's name</label><input type="text" id="a-name" placeholder="Her name, as it should appear"></div>
-      <div class="field"><label for="a-tagline">Line under the title</label><input type="text" id="a-tagline" placeholder="Original works in oil &amp; acrylic"></div>
-      <div class="field"><label for="a-bio">About the artist</label><textarea id="a-bio" placeholder="Her story — when she began painting, what moves her, the places and colours she returns to..."></textarea></div>
-      <div class="field">
-        <label for="a-portrait">Portrait photograph <span style="text-transform:none;letter-spacing:0">(optional)</span></label>
-        <div class="drop" id="drop-portrait">
-          <input type="file" id="a-portrait" accept="image/*">
-          <img class="preview" id="a-portrait-preview" alt="" hidden>
-          <p class="hint">Tap to choose a portrait, or drop one here.</p>
-        </div>
-      </div>
-      <div class="field-row">
-        <div class="field"><label for="a-email">Email for enquiries</label><input type="email" id="a-email"></div>
-        <div class="field"><label for="a-phone">Phone / WhatsApp</label><input type="text" id="a-phone" placeholder="+91 ..."></div>
-        <div class="field"><label for="a-instagram">Instagram</label><input type="text" id="a-instagram" placeholder="@handle"></div>
-      </div>
-      <div class="studio-actions">
-        <button class="btn" id="a-save" type="button">Save artist details</button>
-        <span id="a-status-msg" style="font-style:italic;color:var(--ink-soft)"></span>
-      </div>
-    </div>
-  </div>
-</dialog>
-
-<div class="toast" id="toast" role="status"></div>
 
 <script>
 (function(){
   "use strict";
-  var stateEl = document.getElementById('cp-state');
-  var state;
-  try { state = JSON.parse(stateEl.textContent); }
-  catch(e){ state = {artist:{name:"",tagline:"",bio:"",portrait:"",email:"",phone:"",instagram:""},works:[]}; }
-  state.artist = state.artist || {};
-  state.works = state.works || [];
+  var state = {artist:{},works:[]};
 
   var $ = function(id){ return document.getElementById(id); };
   var esc = function(s){
@@ -510,6 +424,10 @@
   };
 
   /* ---------- render ---------- */
+  function dims(w){
+    return (w.w && w.h) ? ' width="' + w.w + '" height="' + w.h + '"' : '';
+  }
+
   function metaLine(w){
     var bits = [];
     if (w.medium) bits.push(w.medium);
@@ -531,7 +449,7 @@
       var hang = (i % 3 === 1) ? "f-wrap" : "f-frame";
       var rot = ((((i * 137) % 15) - 7) / 6).toFixed(2);
       return '<figure class="work ' + hang + '" style="--rot:' + rot + 'deg" tabindex="0" role="button" data-i="' + i + '" aria-label="' + esc(w.title || "Untitled") + '">' +
-        '<div class="frame"><div class="mat"><img loading="lazy" src="' + w.img + '" alt="' + esc(w.title || "Untitled") + '"></div></div>' +
+        '<div class="frame"><div class="mat"><img loading="lazy"' + dims(w) + ' src="' + esc(w.img) + '" alt="' + esc(w.title || "Untitled") + '"></div></div>' +
         '<figcaption><div class="t">' + esc(w.title || "Untitled") + status + '</div>' +
         '<div class="m">' + esc(metaLine(w)) + '</div></figcaption></figure>';
     }).join("");
@@ -570,8 +488,11 @@
   var lightbox = $('lightbox');
   function openWork(i){
     var w = state.works[i]; if (!w) return;
-    $('lb-img').src = w.img;
-    $('lb-img').alt = w.title || "Untitled";
+    var lbImg = $('lb-img');
+    if (w.w && w.h){ lbImg.setAttribute('width', w.w); lbImg.setAttribute('height', w.h); }
+    else { lbImg.removeAttribute('width'); lbImg.removeAttribute('height'); }
+    lbImg.src = w.img;
+    lbImg.alt = w.title || "Untitled";
     $('lb-title').textContent = w.title || "Untitled";
     var rows = [];
     if (w.medium) rows.push('<div><span class="k">Medium</span><span>' + esc(w.medium) + '</span></div>');
@@ -600,235 +521,23 @@
   document.querySelectorAll('[data-close]').forEach(function(b){
     b.addEventListener('click', function(){ $(b.dataset.close).close(); });
   });
-  [lightbox, $('studio')].forEach(function(d){
-    d.addEventListener('click', function(e){ if (e.target === d) d.close(); });
-  });
+  lightbox.addEventListener('click', function(e){ if (e.target === lightbox) lightbox.close(); });
 
-  /* ---------- studio ---------- */
-  var studio = $('studio');
-  $('studio-door').addEventListener('click', function(){
-    fillArtistForm();
-    renderManage();
-    studio.showModal();
-  });
-  document.querySelectorAll('.studio-tabs [role=tab]').forEach(function(t){
-    t.addEventListener('click', function(){
-      document.querySelectorAll('.studio-tabs [role=tab]').forEach(function(x){ x.setAttribute('aria-selected','false'); });
-      document.querySelectorAll('.pane').forEach(function(p){ p.classList.remove('on'); });
-      t.setAttribute('aria-selected','true');
-      $(t.dataset.pane).classList.add('on');
+  function boot(data){
+    state.artist = (data && data.artist) || {};
+    state.works = (data && data.works) || [];
+    renderWall();
+    renderArtist();
+  }
+
+  fetch('data.json', { cache: 'no-store' })
+    .then(function(r){ if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
+    .then(boot)
+    .catch(function(){
+      boot(null);
+      var w = document.getElementById('wall');
+      if (w) w.innerHTML = '<p style="font-style:italic;color:var(--ink-soft)">The gallery could not be loaded just now \u2014 please refresh in a moment.</p>';
     });
-  });
-
-  /* image compression */
-  function compress(file, maxDim, quality){
-    return new Promise(function(resolve, reject){
-      var img = new Image();
-      var url = URL.createObjectURL(file);
-      img.onload = function(){
-        try{
-          var w = img.naturalWidth, h = img.naturalHeight;
-          var scale = Math.min(1, maxDim / Math.max(w, h));
-          var cw = Math.round(w * scale), ch = Math.round(h * scale);
-          var c = document.createElement('canvas');
-          c.width = cw; c.height = ch;
-          c.getContext('2d').drawImage(img, 0, 0, cw, ch);
-          URL.revokeObjectURL(url);
-          resolve(c.toDataURL('image/jpeg', quality));
-        }catch(err){ reject(err); }
-      };
-      img.onerror = function(){ URL.revokeObjectURL(url); reject(new Error("could not read image")); };
-      img.src = url;
-    });
-  }
-
-  function wireDrop(dropId, inputId, previewId, hintSel, onImage){
-    var drop = $(dropId), input = $(inputId), preview = $(previewId);
-    drop.addEventListener('click', function(e){ if (e.target !== input) input.click(); });
-    input.addEventListener('change', function(){ if (input.files[0]) handle(input.files[0]); });
-    ['dragover','dragenter'].forEach(function(ev){
-      drop.addEventListener(ev, function(e){ e.preventDefault(); drop.classList.add('over'); });
-    });
-    ['dragleave','drop'].forEach(function(ev){
-      drop.addEventListener(ev, function(e){ e.preventDefault(); drop.classList.remove('over'); });
-    });
-    drop.addEventListener('drop', function(e){
-      var f = e.dataTransfer.files && e.dataTransfer.files[0];
-      if (f) handle(f);
-    });
-    function handle(f){
-      compress(f, 1200, 0.78).then(function(uri){
-        preview.src = uri; preview.hidden = false;
-        var hint = drop.querySelector(hintSel); if (hint) hint.textContent = "Looks lovely. Tap again to choose a different photo.";
-        onImage(uri);
-      }).catch(function(){
-        var hint = drop.querySelector(hintSel); if (hint) hint.textContent = "That photo could not be read — try another one.";
-      });
-    }
-  }
-
-  var pendingImg = "", editingIndex = -1;
-  wireDrop('drop','w-file','w-preview','.hint', function(uri){ pendingImg = uri; });
-  var pendingPortrait = null; /* null = unchanged */
-  wireDrop('drop-portrait','a-portrait','a-portrait-preview','.hint', function(uri){ pendingPortrait = uri; });
-
-  function resetWorkForm(){
-    pendingImg = ""; editingIndex = -1;
-    $('w-preview').hidden = true; $('w-preview').src = "";
-    $('drop-hint').innerHTML = "Tap to choose a photo, or drop one here.<br>A phone photo is perfect — it will be sized for the wall automatically.";
-    $('w-title').value = ""; $('w-medium').value = ""; $('w-size').value = "";
-    $('w-year').value = ""; $('w-note').value = ""; $('w-status').value = "display";
-    $('w-file').value = "";
-    $('w-save').textContent = "Hang it on the wall";
-    $('w-cancel').hidden = true;
-    $('w-status-msg').textContent = "";
-  }
-  $('w-cancel').addEventListener('click', resetWorkForm);
-
-  function renderManage(){
-    var list = $('manage-list');
-    $('manage-empty').hidden = !!state.works.length;
-    list.innerHTML = state.works.map(function(w, i){
-      return '<div class="manage-row">' +
-        '<img src="' + w.img + '" alt="">' +
-        '<div class="info"><div class="t">' + esc(w.title || "Untitled") + '</div>' +
-        '<div class="m">' + esc(metaLine(w) || "—") + (w.status === "available" ? " · available" : w.status === "sold" ? " · sold" : "") + '</div></div>' +
-        '<button class="mini" data-edit="' + i + '" type="button">Edit</button>' +
-        '<button class="mini warn" data-del="' + i + '" type="button">Take down</button>' +
-        '</div>';
-    }).join("");
-  }
-  $('manage-list').addEventListener('click', function(e){
-    var eb = e.target.closest('[data-edit]'), db = e.target.closest('[data-del]');
-    if (eb){
-      var i = +eb.dataset.edit, w = state.works[i];
-      editingIndex = i; pendingImg = w.img;
-      $('w-preview').src = w.img; $('w-preview').hidden = false;
-      $('drop-hint').textContent = "Tap to replace the photo, or leave as is.";
-      $('w-title').value = w.title || ""; $('w-medium').value = w.medium || "";
-      $('w-size').value = w.size || ""; $('w-year').value = w.year || "";
-      $('w-note').value = w.note || ""; $('w-status').value = w.status || "display";
-      $('w-save').textContent = "Save changes";
-      $('w-cancel').hidden = false;
-      document.querySelector('[data-pane=pane-add]').click();
-    }
-    if (db){
-      var j = +db.dataset.del, t = state.works[j] && state.works[j].title;
-      var next = { artist: state.artist, works: state.works.filter(function(_, k){ return k !== j; }) };
-      publishState(next, 'Took down "' + (t || "Untitled") + '"', $('a-status-msg'));
-    }
-  });
-
-  function fillArtistForm(){
-    var a = state.artist;
-    $('a-name').value = a.name || "";
-    $('a-tagline').value = a.tagline || "";
-    $('a-bio').value = a.bio || "";
-    $('a-email').value = a.email || "";
-    $('a-phone').value = a.phone || "";
-    $('a-instagram').value = a.instagram || "";
-    pendingPortrait = null;
-    if (a.portrait){ $('a-portrait-preview').src = a.portrait; $('a-portrait-preview').hidden = false; }
-    else { $('a-portrait-preview').hidden = true; }
-  }
-
-  /* ---------- publishing ---------- */
-  var busy = false;
-  function setMsg(el, msg, spinning){
-    el.innerHTML = (spinning ? '<span class="spin"></span>' : '') + esc(msg);
-  }
-  var STATE_OPEN = '<scr' + 'ipt type="application/json" id="cp-state">';
-  var STATE_CLOSE = '</scr' + 'ipt>';
-  function patchState(html, json){
-    var start = html.indexOf(STATE_OPEN);
-    if (start < 0) return null;
-    var end = html.indexOf(STATE_CLOSE, start);
-    if (end < 0) return null;
-    return html.slice(0, start) + STATE_OPEN + json + html.slice(end);
-  }
-  function publishState(next, toastMsg, msgEl){
-    if (busy) return;
-    busy = true;
-    setMsg(msgEl, "Saving to the gallery…", true);
-    var uses = (window.claude && window.claude.use) ? window.claude.use("artifact") : Promise.resolve(null);
-    Promise.resolve(uses).then(function(artifact){
-      if (!artifact) throw { code: "no_runtime" };
-      return fetch(location.href, { cache: "no-store" })
-        .then(function(r){ if (!r.ok) throw { code: "fetch_failed" }; return r.text(); })
-        .then(function(html){
-          var json = JSON.stringify(next).replace(/</g, "\\u003c");
-          var patched = patchState(html, json);
-          if (!patched) throw { code: "patch_failed" };
-          return artifact.publish(patched);
-        });
-    }).then(function(){
-      try { sessionStorage.setItem("cp-toast", toastMsg); } catch(e){}
-      /* view reloads on success; nothing else to do */
-    }).catch(function(err){
-      busy = false;
-      var code = err && err.code;
-      if (code === "conflict"){ setMsg(msgEl, "Someone just saved a newer version — refreshing…", false); return; }
-      if (code === "not_writer" || code === "not_granted"){
-        setMsg(msgEl, "This view is read-only. Sign in as the artist (or family with edit access) to save.", false); return;
-      }
-      if (code === "too_large"){
-        setMsg(msgEl, "The gallery is full — this save would make the site too heavy. Take down an older work first.", false); return;
-      }
-      if (code === "rate_limited"){ setMsg(msgEl, "Saving too quickly — wait a moment and try once more.", false); return; }
-      if (code === "no_runtime"){
-        setMsg(msgEl, "Saving works on the published site at its claude.ai link — open it there to save.", false); return;
-      }
-      setMsg(msgEl, "The save did not go through — check the connection and try again.", false);
-    });
-  }
-
-  $('w-save').addEventListener('click', function(){
-    var msgEl = $('w-status-msg');
-    if (!pendingImg){ setMsg(msgEl, "Add a photograph of the work first.", false); return; }
-    var w = {
-      id: editingIndex >= 0 ? state.works[editingIndex].id : "w" + Math.random().toString(36).slice(2, 9),
-      img: pendingImg,
-      title: $('w-title').value.trim(),
-      medium: $('w-medium').value.trim(),
-      size: $('w-size').value.trim(),
-      year: $('w-year').value.trim(),
-      note: $('w-note').value.trim(),
-      status: $('w-status').value
-    };
-    var works = state.works.slice();
-    if (editingIndex >= 0) works[editingIndex] = w; else works.unshift(w);
-    publishState({ artist: state.artist, works: works },
-      editingIndex >= 0 ? 'Updated "' + (w.title || "Untitled") + '"' : '"' + (w.title || "Untitled") + '" now hangs on the wall',
-      msgEl);
-  });
-
-  $('a-save').addEventListener('click', function(){
-    var a = {
-      name: $('a-name').value.trim(),
-      tagline: $('a-tagline').value.trim(),
-      bio: $('a-bio').value.trim(),
-      portrait: pendingPortrait === null ? (state.artist.portrait || "") : pendingPortrait,
-      email: $('a-email').value.trim(),
-      phone: $('a-phone').value.trim(),
-      instagram: $('a-instagram').value.trim()
-    };
-    publishState({ artist: a, works: state.works }, "Artist details saved", $('a-status-msg'));
-  });
-
-  /* ---------- toast on reload ---------- */
-  var toast = $('toast');
-  try {
-    var t = sessionStorage.getItem("cp-toast");
-    if (t){
-      sessionStorage.removeItem("cp-toast");
-      toast.textContent = t;
-      toast.classList.add("show");
-      setTimeout(function(){ toast.classList.remove("show"); }, 3500);
-    }
-  } catch(e){}
-
-  renderWall();
-  renderArtist();
 })();
 </script>
 
