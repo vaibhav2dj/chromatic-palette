@@ -248,20 +248,14 @@
   <section id="gate" class="gate">
     <div class="panel">
       <h2>Sign in to the Studio</h2>
-      <p class="hint">The Studio saves changes straight to the website. It needs a GitHub access token once per device.</p>
-      <ol class="steps">
-        <li>Open <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">GitHub → new fine-grained token</a>.</li>
-        <li>Repository access → <b>Only select repositories</b> → <code>chromatic-palette</code>.</li>
-        <li>Permissions → Repository permissions → <b>Contents</b> → <b>Read and write</b>.</li>
-        <li>Generate it, then paste it here.</li>
-      </ol>
-      <label for="tok">GitHub token</label>
-      <input type="password" id="tok" placeholder="github_pat_…" autocomplete="off">
+      <p class="hint">Enter the Studio password to add and arrange paintings.</p>
+      <label for="pw">Password</label>
+      <input type="password" id="pw" autocomplete="current-password" placeholder="••••••••">
       <div style="display:flex;gap:.7rem;align-items:center;margin-top:.9rem;flex-wrap:wrap">
         <button class="btn" id="signin" type="button">Sign in</button>
         <span class="msg" id="gate-msg"></span>
       </div>
-      <p class="caution">The token stays in this browser and is sent only to GitHub. Anyone holding it can edit the website's files — don't use a shared computer, and revoke it in GitHub settings if a device is lost.</p>
+      <p class="caution" id="setup-note" hidden></p>
     </div>
   </section>
 
@@ -325,9 +319,6 @@
 (function(){
   "use strict";
 
-  var OWNER = "vaibhav2dj", REPO = "chromatic-palette", BRANCH = "main";
-  var API = "https://api.github.com/repos/" + OWNER + "/" + REPO + "/contents/";
-  var KEY = "cp-studio-token";
   var MAXDIM = 1500, QUALITY = 0.82;
 
   var $ = function(id){ return document.getElementById(id); };
@@ -342,54 +333,37 @@
     el.innerHTML = (spinning ? '<span class="spin"></span>' : "") + esc(text);
   }
 
-  var token = "";
-  try { token = localStorage.getItem(KEY) || ""; } catch(e){}
-
   /* works[]: {uid,img,w,h,title,medium,size,year,note,status, blob?, url?, isNew?} */
   var works = [], artist = {}, portraitBlob = null;
-  var dataSha = null, dirty = false, busy = false, uidN = 0;
-  var original = "";
+  var dirty = false, busy = false, uidN = 0, original = "";
 
   function uid(){ return "u" + (++uidN); }
 
-  /* ---------------- GitHub ---------------- */
-  function gh(path, options){
+  /* ---------------- the site's own API ---------------- */
+  function api(options){
     options = options || {};
-    options.headers = Object.assign({
-      "Authorization": "Bearer " + token,
-      "Accept": "application/vnd.github+json",
-      "X-GitHub-Api-Version": "2022-11-28"
-    }, options.headers || {});
-    return fetch(API + path, options).then(function(r){
-      if (r.status === 401 || r.status === 403){ var e = new Error("auth"); e.code = "auth"; throw e; }
-      return r;
+    options.credentials = "same-origin";
+    if (options.body && typeof options.body !== "string"){
+      options.body = JSON.stringify(options.body);
+      options.headers = Object.assign({ "Content-Type": "application/json" }, options.headers || {});
+    }
+    return fetch("/api/studio", options).then(function(r){
+      return r.json().catch(function(){ return {}; }).then(function(j){
+        if (r.status === 401){ var e = new Error(j.message || "Please sign in again."); e.code = "auth"; throw e; }
+        if (!r.ok){ var e2 = new Error(j.message || "That did not work."); e2.code = j.error || "http"; throw e2; }
+        return j;
+      });
     });
   }
-  function putFile(path, base64, message, sha){
-    var body = { message: message, content: base64, branch: BRANCH };
-    if (sha) body.sha = sha;
-    return gh(path.split("/").map(encodeURIComponent).join("/"), { method:"PUT", body: JSON.stringify(body) })
-      .then(function(r){
-        return r.json().then(function(j){
-          if (!r.ok){
-            var e = new Error(j.message || "save failed");
-            e.code = (r.status === 409 || /does not match|sha/i.test(j.message||"")) ? "conflict" : "http";
-            throw e;
-          }
-          return j;
-        });
-      });
-  }
-  function blobToB64(blob){
+
+  function blobToDataUrl(blob){
     return new Promise(function(res, rej){
       var fr = new FileReader();
-      fr.onload = function(){ res(String(fr.result).split(",")[1]); };
-      fr.onerror = function(){ rej(new Error("could not read the photo")); };
+      fr.onload = function(){ res(String(fr.result)); };
+      fr.onerror = function(){ rej(new Error("could not read the photograph")); };
       fr.readAsDataURL(blob);
     });
   }
-  function b64encode(str){ return btoa(unescape(encodeURIComponent(str))); }
-  function b64decode(str){ return decodeURIComponent(escape(atob(String(str).replace(/\n/g,"")))); }
 
   /* ---------------- image processing ---------------- */
   function processImage(file){
@@ -406,12 +380,12 @@
           URL.revokeObjectURL(url);
           var w = c.width, h = c.height;
           c.toBlob(function(blob){
-            if (!blob) return reject(new Error("could not process the photo"));
+            if (!blob) return reject(new Error("could not process the photograph"));
             resolve({ blob: blob, w: w, h: h, url: URL.createObjectURL(blob) });
           }, "image/jpeg", QUALITY);
         } catch(err){ URL.revokeObjectURL(url); reject(err); }
       };
-      img.onerror = function(){ URL.revokeObjectURL(url); reject(new Error("that file is not an image we can read")); };
+      img.onerror = function(){ URL.revokeObjectURL(url); reject(new Error("that file is not a photograph we can read")); };
       img.src = url;
     });
   }
@@ -420,20 +394,11 @@
     return String(s||"").toLowerCase().replace(/\.[a-z0-9]+$/,"")
       .replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,48);
   }
-  function uniqueName(base){
-    base = base || "painting";
-    var taken = {};
-    works.forEach(function(w){ if (w.img) taken[w.img.toLowerCase()] = true; });
-    var name = base + ".jpg", n = 2;
-    while (taken[name.toLowerCase()]){ name = base + "-" + n + ".jpg"; n++; }
-    return name;
-  }
   function shapeOf(w){
     if (!w.w || !w.h) return "";
     var r = w.w / w.h;
     return r > 1.15 ? "landscape" : (r < 0.87 ? "portrait" : "square");
   }
-
   /* ---------------- dirty tracking ---------------- */
   function snapshot(){
     return JSON.stringify({
@@ -730,50 +695,39 @@
     $("publish").disabled = true; $("discard").disabled = true;
     setMsg($("pub-msg"), "Publishing…", "", true);
 
-    var queue = [];
-    works.forEach(function(w){
-      if (!w.blob) return;
-      var base = slug(w.title) || slug(w.sourceName) || "painting";
-      var name = w.img && !w.isNew ? uniqueName(base) : uniqueName(base);
-      queue.push({ w: w, name: name });
-    });
-
+    var pending = works.filter(function(w){ return !!w.blob; });
     var chain = Promise.resolve();
-    queue.forEach(function(job){
+
+    pending.forEach(function(w){
       chain = chain.then(function(){
-        return blobToB64(job.w.blob).then(function(b64){
-          return putFile(job.name, b64, "Studio: photograph " + job.name);
-        }).then(function(){
-          job.w.img = job.name;
-        });
+        return blobToDataUrl(w.blob).then(function(dataUrl){
+          return api({ method: "POST", body: {
+            action: "upload", name: slug(w.title) || slug(w.sourceName) || "painting",
+            dataUrl: dataUrl
+          }});
+        }).then(function(r){ w.img = r.url; });
       });
     });
 
     if (portraitBlob){
       chain = chain.then(function(){
-        return blobToB64(portraitBlob).then(function(b64){
-          return gh("portrait.jpg?ref=" + BRANCH).then(function(r){
-            return r.ok ? r.json().then(function(j){ return j.sha; }) : null;
-          }).then(function(sha){
-            return putFile("portrait.jpg", b64, "Studio: update the portrait", sha);
-          });
-        }).then(function(){ artist.portrait = "portrait.jpg"; });
+        return blobToDataUrl(portraitBlob).then(function(dataUrl){
+          return api({ method: "POST", body: { action: "upload", name: "portrait", dataUrl: dataUrl } });
+        }).then(function(r){ artist.portrait = r.url; });
       });
     }
 
     chain.then(function(){
-      var payload = {
-        artist: artist,
+      return api({ method: "POST", body: {
+        action: "save", artist: artist,
         works: works.map(function(w){
           var o = { img: w.img, title: w.title || "", medium: w.medium || "", size: w.size || "",
                     year: w.year || "", note: w.note || "", status: w.status || "display" };
           if (w.w && w.h){ o.w = w.w; o.h = w.h; }
           return o;
         })
-      };
-      return putFile("data.json", b64encode(JSON.stringify(payload, null, 1)), "Studio: update the wall", dataSha);
-    }).then(function(j){
-      dataSha = j.content && j.content.sha;
+      }});
+    }).then(function(){
       works.forEach(function(w){ delete w.blob; w.isNew = false; });
       portraitBlob = null;
       original = snapshot(); dirty = false;
@@ -782,13 +736,13 @@
       renderGrid();
       renderPending();
       setMsg($("pub-msg"), "", "");
-      setMsg($("top-msg"), "Published. The website updates in about half a minute.", "ok");
+      setMsg($("top-msg"), "Published — the wall is live now.", "ok");
       $("publishbar").classList.remove("up");
     }).catch(function(err){
       busy = false;
       $("publish").disabled = false; $("discard").disabled = false;
-      if (err && err.code === "auth") setMsg($("pub-msg"), "The token was refused — sign out and sign in again.", "err");
-      else if (err && err.code === "conflict") setMsg($("pub-msg"), "The website changed elsewhere. Reload the page, then redo this.", "err");
+      if (err && err.code === "auth"){ setMsg($("pub-msg"), "Signed out — sign in and publish again.", "err"); signOut(""); }
+      else if (err && err.code === "setup"){ setMsg($("pub-msg"), err.message, "err"); }
       else setMsg($("pub-msg"), (err && err.message) || "That did not save — check the connection and try again.", "err");
     });
   }
@@ -802,16 +756,11 @@
 
   /* ---------------- load ---------------- */
   function load(){
-    return gh("data.json?ref=" + BRANCH + "&nocache=" + Date.now())
-      .then(function(r){
-        if (r.status === 404) return { sha: null, parsed: { artist:{}, works:[] } };
-        if (!r.ok) throw new Error("could not load the wall");
-        return r.json().then(function(j){ return { sha: j.sha, parsed: JSON.parse(b64decode(j.content)) }; });
-      })
-      .then(function(res){
-        dataSha = res.sha;
-        artist = res.parsed.artist || {};
-        works = (res.parsed.works || []).map(function(w){
+    return fetch("/api/studio", { cache: "no-store", credentials: "same-origin" })
+      .then(function(r){ if (!r.ok) throw new Error("could not load the wall"); return r.json(); })
+      .then(function(data){
+        artist = data.artist || {};
+        works = (data.works || []).map(function(w){
           return { uid: uid(), img: w.img || "", w: w.w, h: w.h, title: w.title || "", medium: w.medium || "",
                    size: w.size || "", year: w.year || "", note: w.note || "", status: w.status || "display" };
         });
@@ -835,44 +784,51 @@
     hide($("gate")); show($("app")); show($("signout"));
     setMsg($("top-msg"), "Loading the wall…", "", true);
     load().then(function(){ setMsg($("top-msg"), "", ""); })
-      .catch(function(err){
-        if (err && err.code === "auth"){ signOut("The token was refused. Sign in again."); return; }
-        setMsg($("top-msg"), "The wall could not be loaded — reload to try again.", "err");
-      });
+      .catch(function(){ setMsg($("top-msg"), "The wall could not be loaded — reload to try again.", "err"); });
   }
+
   function signOut(message){
-    token = "";
-    try { localStorage.removeItem(KEY); } catch(e){}
     works = []; artist = {}; dirty = false; renderPending();
     show($("gate")); hide($("app")); hide($("signout"));
-    $("tok").value = "";
+    $("pw").value = "";
     setMsg($("top-msg"), "", "");
     setMsg($("gate-msg"), message || "", message ? "err" : "");
   }
+
   $("signin").addEventListener("click", function(){
-    var t = $("tok").value.trim();
-    if (!t){ setMsg($("gate-msg"), "Paste the token first.", "err"); return; }
-    token = t;
+    var pw = $("pw").value;
+    if (!pw){ setMsg($("gate-msg"), "Enter the password.", "err"); return; }
+    $("signin").disabled = true;
     setMsg($("gate-msg"), "Checking…", "", true);
-    gh("data.json?ref=" + BRANCH).then(function(r){
-      if (!r.ok && r.status !== 404) throw new Error("That token cannot reach the repository.");
-      try { localStorage.setItem(KEY, t); } catch(e){}
+    api({ method: "POST", body: { action: "login", password: pw } }).then(function(){
+      $("signin").disabled = false;
+      $("pw").value = "";
       setMsg($("gate-msg"), "", "");
       start();
     }).catch(function(err){
-      token = "";
-      setMsg($("gate-msg"), err && err.code === "auth"
-        ? "GitHub refused that token — check it has Contents: Read and write on chromatic-palette."
-        : (err.message || "Could not verify that token."), "err");
+      $("signin").disabled = false;
+      setMsg($("gate-msg"), (err && err.message) || "That did not work.", "err");
     });
   });
-  $("tok").addEventListener("keydown", function(e){ if (e.key === "Enter") $("signin").click(); });
+
+  $("pw").addEventListener("keydown", function(e){ if (e.key === "Enter") $("signin").click(); });
+
   $("signout").addEventListener("click", function(){
     if (dirty && !window.confirm("There are unpublished changes. Sign out anyway?")) return;
-    signOut("Signed out.");
+    api({ method: "POST", body: { action: "logout" } }).catch(function(){}).then(function(){ signOut("Signed out."); });
   });
 
-  if (token) start();
+  /* already signed in on this device? */
+  fetch("/api/studio?action=session", { credentials: "same-origin", cache: "no-store" })
+    .then(function(r){ return r.json(); })
+    .then(function(j){
+      if (!j.configured){
+        $("setup-note").hidden = false;
+        $("setup-note").textContent = "This site still needs its Studio password and storage set up in Vercel before uploads will work.";
+      }
+      if (j.signedIn) start();
+    })
+    .catch(function(){});
 })();
 </script>
 </body>
