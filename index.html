@@ -530,7 +530,7 @@
     renderArtist();
   }
 
-  fetch('/api/studio', { cache: 'no-store' })
+  fetch('/api/gallery', { cache: 'no-store' })
     .catch(function(){ return fetch('data.json', { cache: 'no-store' }); })
     .then(function(r){ if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
     .then(boot)

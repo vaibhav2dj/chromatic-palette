@@ -340,14 +340,14 @@
   function uid(){ return "u" + (++uidN); }
 
   /* ---------------- the site's own API ---------------- */
-  function api(options){
+  function api(path, options){
     options = options || {};
     options.credentials = "same-origin";
     if (options.body && typeof options.body !== "string"){
       options.body = JSON.stringify(options.body);
       options.headers = Object.assign({ "Content-Type": "application/json" }, options.headers || {});
     }
-    return fetch("/api/studio", options).then(function(r){
+    return fetch("/api/" + path, options).then(function(r){
       return r.json().catch(function(){ return {}; }).then(function(j){
         if (r.status === 401){ var e = new Error(j.message || "Please sign in again."); e.code = "auth"; throw e; }
         if (!r.ok){ var e2 = new Error(j.message || "That did not work."); e2.code = j.error || "http"; throw e2; }
@@ -701,8 +701,8 @@
     pending.forEach(function(w){
       chain = chain.then(function(){
         return blobToDataUrl(w.blob).then(function(dataUrl){
-          return api({ method: "POST", body: {
-            action: "upload", name: slug(w.title) || slug(w.sourceName) || "painting",
+          return api("upload", { method: "POST", body: {
+            name: slug(w.title) || slug(w.sourceName) || "painting",
             dataUrl: dataUrl
           }});
         }).then(function(r){ w.img = r.url; });
@@ -712,14 +712,14 @@
     if (portraitBlob){
       chain = chain.then(function(){
         return blobToDataUrl(portraitBlob).then(function(dataUrl){
-          return api({ method: "POST", body: { action: "upload", name: "portrait", dataUrl: dataUrl } });
+          return api("upload", { method: "POST", body: { name: "portrait", dataUrl: dataUrl } });
         }).then(function(r){ artist.portrait = r.url; });
       });
     }
 
     chain.then(function(){
-      return api({ method: "POST", body: {
-        action: "save", artist: artist,
+      return api("save", { method: "POST", body: {
+        artist: artist,
         works: works.map(function(w){
           var o = { img: w.img, title: w.title || "", medium: w.medium || "", size: w.size || "",
                     year: w.year || "", note: w.note || "", status: w.status || "display" };
@@ -756,7 +756,7 @@
 
   /* ---------------- load ---------------- */
   function load(){
-    return fetch("/api/studio", { cache: "no-store", credentials: "same-origin" })
+    return fetch("/api/gallery", { cache: "no-store", credentials: "same-origin" })
       .then(function(r){ if (!r.ok) throw new Error("could not load the wall"); return r.json(); })
       .then(function(data){
         artist = data.artist || {};
@@ -800,7 +800,7 @@
     if (!pw){ setMsg($("gate-msg"), "Enter the password.", "err"); return; }
     $("signin").disabled = true;
     setMsg($("gate-msg"), "Checking…", "", true);
-    api({ method: "POST", body: { action: "login", password: pw } }).then(function(){
+    api("login", { method: "POST", body: { password: pw } }).then(function(){
       $("signin").disabled = false;
       $("pw").value = "";
       setMsg($("gate-msg"), "", "");
@@ -815,11 +815,11 @@
 
   $("signout").addEventListener("click", function(){
     if (dirty && !window.confirm("There are unpublished changes. Sign out anyway?")) return;
-    api({ method: "POST", body: { action: "logout" } }).catch(function(){}).then(function(){ signOut("Signed out."); });
+    api("login", { method: "DELETE" }).catch(function(){}).then(function(){ signOut("Signed out."); });
   });
 
   /* already signed in on this device? */
-  fetch("/api/studio?action=session", { credentials: "same-origin", cache: "no-store" })
+  fetch("/api/login", { credentials: "same-origin", cache: "no-store" })
     .then(function(r){ return r.json(); })
     .then(function(j){
       if (!j.configured){
